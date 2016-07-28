@@ -1,7 +1,21 @@
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
 import javax.swing.JFileChooser;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import org.w3c.dom.Attr;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -16,6 +30,7 @@ import javax.swing.JFileChooser;
 public class CreateFrame extends javax.swing.JFrame {
 
     String fileDir = null;
+    String tableName = null;
     int numberOfTeam = 0;
     int index = 0;
     DefaultListModel model;
@@ -232,6 +247,7 @@ public class CreateFrame extends javax.swing.JFrame {
     private void jButton2MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton2MouseClicked
         if(jTextField1.getText().trim().length()!=0 && fileDir!=null) {
             System.err.println("Created");
+            tableName = jTextField1.getText();
             numberOfTeam = Integer.parseInt(jComboBox1.getSelectedItem().toString());
             jPanel1.setVisible(false);
             jPanel2.setVisible(true);
@@ -249,10 +265,46 @@ public class CreateFrame extends javax.swing.JFrame {
 
     private void jButton3MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton3MouseClicked
         if (!tfAdd.isEnabled() && !btnAdd.isEnabled()) {
-            System.out.println("CreateFrame.jButton3MouseClicked()");
             for (int i = 0; i < model.getSize(); i++) {
                 teams.add((String) model.get(i));
+                G.teamsName.add((String) model.get(i));
             }
+            
+            //-----------------------------------------
+            DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder docBuilder;
+            try {
+                docBuilder = docFactory.newDocumentBuilder();
+                // root elements
+		Document doc = docBuilder.newDocument();
+		Element rootElement = doc.createElement("teams");
+		doc.appendChild(rootElement);
+
+		// salary elements
+                for(int i=0; i<teams.size(); i++) {
+                    Element t = doc.createElement("team"+(i+1));
+                    t.appendChild(doc.createTextNode(teams.get(i)));
+                    rootElement.appendChild(t);
+                }
+
+		// write the content into xml file
+		TransformerFactory transformerFactory = TransformerFactory.newInstance();
+		Transformer transformer = transformerFactory.newTransformer();
+		DOMSource source = new DOMSource(doc);
+		StreamResult result = new StreamResult(new File(fileDir + "/" + tableName + ".xml"));
+
+		transformer.transform(source, result);
+
+		System.out.println("File saved!");
+                this.setVisible(false);
+                TableFrame tf = new TableFrame();
+                tf.setVisible(true);
+
+            } catch (ParserConfigurationException ex) {
+                Logger.getLogger(CreateFrame.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (TransformerException ex) {
+                Logger.getLogger(CreateFrame.class.getName()).log(Level.SEVERE, null, ex);
+            }		
         }
     }//GEN-LAST:event_jButton3MouseClicked
 

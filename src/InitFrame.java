@@ -81,6 +81,7 @@ public class InitFrame extends javax.swing.JFrame {
     private void btnCreateMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnCreateMouseClicked
         CreateFrame frame = new CreateFrame();
         frame.setVisible(true);
+        this.setVisible(false);
     }//GEN-LAST:event_btnCreateMouseClicked
 
     /**
