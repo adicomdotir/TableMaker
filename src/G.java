@@ -13,4 +13,6 @@ import java.util.ArrayList;
  */
 public class G {
     public static ArrayList<String> teamsName = new ArrayList<>();
+    public static String fullPath;
+    public static int nWeek;
 }

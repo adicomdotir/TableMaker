@@ -68,6 +68,9 @@
         </Property>
         <Property name="text" type="java.lang.String" value="&#x628;&#x627;&#x632; &#x6a9;&#x631;&#x62f;&#x646; &#x62c;&#x62f;&#x648;&#x644;"/>
       </Properties>
+      <Events>
+        <EventHandler event="mouseClicked" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="btnOpenMouseClicked"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel1">
       <Properties>

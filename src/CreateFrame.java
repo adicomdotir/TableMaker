@@ -1,6 +1,10 @@
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
@@ -9,6 +13,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
@@ -22,7 +27,6 @@ import org.w3c.dom.Element;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 /**
  *
  * @author adicom
@@ -245,7 +249,7 @@ public class CreateFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton1MouseClicked
 
     private void jButton2MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton2MouseClicked
-        if(jTextField1.getText().trim().length()!=0 && fileDir!=null) {
+        if (jTextField1.getText().trim().length() != 0 && fileDir != null) {
             System.err.println("Created");
             tableName = jTextField1.getText();
             numberOfTeam = Integer.parseInt(jComboBox1.getSelectedItem().toString());
@@ -257,7 +261,7 @@ public class CreateFrame extends javax.swing.JFrame {
     private void btnAddMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnAddMouseClicked
         model.add(index, tfAdd.getText());
         index++;
-        if(index >= numberOfTeam) {
+        if (index >= numberOfTeam) {
             tfAdd.setEnabled(false);
             btnAdd.setEnabled(false);
         }
@@ -270,41 +274,74 @@ public class CreateFrame extends javax.swing.JFrame {
                 G.teamsName.add((String) model.get(i));
             }
             
-            //-----------------------------------------
             DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder docBuilder;
             try {
                 docBuilder = docFactory.newDocumentBuilder();
                 // root elements
-		Document doc = docBuilder.newDocument();
-		Element rootElement = doc.createElement("teams");
-		doc.appendChild(rootElement);
+                Document doc = docBuilder.newDocument();
+                Element rootElement = doc.createElement("fixure");
+                doc.appendChild(rootElement);
 
-		// salary elements
-                for(int i=0; i<teams.size(); i++) {
-                    Element t = doc.createElement("team"+(i+1));
-                    t.appendChild(doc.createTextNode(teams.get(i)));
-                    rootElement.appendChild(t);
+                for (int i = 1; i <= (G.teamsName.size() - 1) * 2; i++) {
+                    Element week = doc.createElement("week");
+                    Attr attr = doc.createAttribute("id");
+                    attr.setValue("" + i);
+                    week.setAttributeNode(attr);
+                    rootElement.appendChild(week);
+                    for (int j = 0; j < G.teamsName.size() / 2; j++) {
+                        Element game = doc.createElement("game");
+                        week.appendChild(game);
+                        for (int k = 0; k < 2; k++) {
+                            Element t = doc.createElement("t");
+                            game.appendChild(t);
+                            Element name = doc.createElement("name");
+                            name.appendChild(doc.createTextNode(""));
+                            t.appendChild(name);
+                            Element goal = doc.createElement("goal");
+                            goal.appendChild(doc.createTextNode(""));
+                            t.appendChild(goal);
+                        }
+                    }
                 }
 
-		// write the content into xml file
-		TransformerFactory transformerFactory = TransformerFactory.newInstance();
-		Transformer transformer = transformerFactory.newTransformer();
-		DOMSource source = new DOMSource(doc);
-		StreamResult result = new StreamResult(new File(fileDir + "/" + tableName + ".xml"));
+                //t.appendChild(doc.createTextNode(G.teamsName.get(i)));
+                // write the content into xml file
+                TransformerFactory transformerFactory = TransformerFactory.newInstance();
+                Transformer transformer = transformerFactory.newTransformer();
+                DOMSource source = new DOMSource(doc);
+                StreamResult result = new StreamResult(fileDir + "/" + tableName + ".xml");
 
-		transformer.transform(source, result);
-
-		System.out.println("File saved!");
-                this.setVisible(false);
-                TableFrame tf = new TableFrame();
-                tf.setVisible(true);
-
-            } catch (ParserConfigurationException ex) {
-                Logger.getLogger(CreateFrame.class.getName()).log(Level.SEVERE, null, ex);
+                transformer.transform(source, result);
+            } catch (TransformerConfigurationException ex) {
+                Logger.getLogger(TableFrame.class.getName()).log(Level.SEVERE, null, ex);
             } catch (TransformerException ex) {
-                Logger.getLogger(CreateFrame.class.getName()).log(Level.SEVERE, null, ex);
-            }		
+                Logger.getLogger(TableFrame.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (ParserConfigurationException ex) {
+                Logger.getLogger(TableFrame.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+            try {
+                File file = new File(fileDir + "/" + tableName + ".txt");
+                // if file doesnt exists, then create it
+                if (!file.exists()) {
+                    file.createNewFile();
+                }
+                FileWriter fw = new FileWriter(file.getAbsoluteFile());
+                BufferedWriter bw = new BufferedWriter(fw);
+                bw.write("0\n");
+                bw.write(""+G.teamsName.size());
+                for (Iterator<String> iterator = G.teamsName.iterator(); iterator.hasNext();) {
+                    bw.write("\n");
+                    String next = iterator.next();
+                    bw.write(next);
+                }
+                bw.close();
+                System.out.println("Done");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
         }
     }//GEN-LAST:event_jButton3MouseClicked
 
