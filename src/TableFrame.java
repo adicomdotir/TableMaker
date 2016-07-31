@@ -14,14 +14,13 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -39,35 +38,9 @@ import org.xml.sax.SAXException;
 public class TableFrame extends javax.swing.JFrame {
     int numOfTeams = 0;
     ArrayList<JComboBox> combos = new ArrayList<>();
+    TeamInfo[] teams;
     int[] gs = new int[24];
-
-    public void readXml() throws SAXException, IOException, ParserConfigurationException {
-        File fXmlFile = new File("/home/adicom/Desktop/mytable.xml");
-	DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-	DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-	Document doc = dBuilder.parse(fXmlFile);
-        doc.getDocumentElement().normalize();
-
-	System.out.println("Root element :" + doc.getDocumentElement().getNodeName());
-			
-	NodeList nList = doc.getElementsByTagName("team");
-			
-	numOfTeams = nList.getLength();
-
-	for (int temp = 0; temp < nList.getLength(); temp++) {
-            Node nNode = nList.item(temp);
-            //System.out.println("\nCurrent Element :" + nNode.getNodeName());
-            Element eElement = (Element) nNode;
-            G.teamsName.add(eElement.getElementsByTagName("name").item(0).getTextContent());
-//            if (nNode.getNodeType() == Node.ELEMENT_NODE) {
-//                    System.out.println("Staff id : " + eElement.getAttribute("id"));
-//                    System.out.println("First Name : " + eElement.getElementsByTagName("firstname").item(0).getTextContent());
-//                    System.out.println("Last Name : " + eElement.getElementsByTagName("lastname").item(0).getTextContent());
-//                    System.out.println("Nick Name : " + eElement.getElementsByTagName("nickname").item(0).getTextContent());
-//                    System.out.println("Salary : " + eElement.getElementsByTagName("salary").item(0).getTextContent());
-//            }
-	}
-    }
+    DefaultTableModel model;
     /**
      * Creates new form TableFrame
      */
@@ -101,11 +74,11 @@ public class TableFrame extends javax.swing.JFrame {
             combo.setEnabled(false);
             combo.removeAllItems();
         }
-        
+        String txtFile = G.fullPath.substring(0, G.fullPath.length()-3) + "txt";
         int ln = 1;
         FileReader fileReader;
         try {
-            fileReader = new FileReader(new File("sss.txt"));
+            fileReader = new FileReader(new File(txtFile));
             BufferedReader br = new BufferedReader(fileReader);
             String line = null;
             while ((line = br.readLine()) != null) {
@@ -130,10 +103,25 @@ public class TableFrame extends javax.swing.JFrame {
                 combos.get(i).addItem(G.teamsName.get(j));
             }
         }
-        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-        for(int i=0; i<G.teamsName.size(); i++) {
+        jTabbedPane1.setTitleAt(1, "هفته " + (G.nWeek+1));
+        teams = new TeamInfo[G.teamsName.size()];
+        for (int i = 0; i < G.teamsName.size(); i++) {
+            teams[i] = new TeamInfo();
+            teams[i].name = G.teamsName.get(i);
+        }
+        model = (DefaultTableModel) jTable1.getModel();
+        for(int i=0; i<teams.length; i++) {
             Vector row = new Vector();
-            row.add(G.teamsName.get(i));
+            TeamInfo t = teams[i];
+            row.add(t.name);
+            row.add(t.game);
+            row.add(t.won);
+            row.add(t.lose);
+            row.add(t.draw);
+            row.add(t.gs);
+            row.add(t.ga);
+            row.add(t.gdiff);
+            row.add(t.pts);
             model.addRow(row);
         }
         jTable1.setModel(model);
@@ -148,7 +136,7 @@ public class TableFrame extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jButton1 = new javax.swing.JButton();
+        btnUpdateTable = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
         jTabbedPane1 = new javax.swing.JTabbedPane();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -206,7 +194,12 @@ public class TableFrame extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        jButton1.setText("جدول");
+        btnUpdateTable.setText("جدول");
+        btnUpdateTable.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                btnUpdateTableMouseClicked(evt);
+            }
+        });
 
         jButton2.setText("نتایج و برنامه");
 
@@ -551,7 +544,7 @@ public class TableFrame extends javax.swing.JFrame {
                         .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(jButton2)
                         .addGap(18, 18, 18)
-                        .addComponent(jButton1))
+                        .addComponent(btnUpdateTable))
                     .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 679, Short.MAX_VALUE))
                 .addContainerGap())
         );
@@ -560,7 +553,7 @@ public class TableFrame extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton1)
+                    .addComponent(btnUpdateTable)
                     .addComponent(jButton2))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 425, Short.MAX_VALUE)
@@ -574,6 +567,101 @@ public class TableFrame extends javax.swing.JFrame {
         checkEditBox();
         writeXml();
     }//GEN-LAST:event_btnSubmitMouseClicked
+
+    private void btnUpdateTableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnUpdateTableMouseClicked
+        try {
+            File fXmlFile = new File(G.fullPath);
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+            Document doc = dBuilder.parse(fXmlFile);
+            doc.getDocumentElement().normalize();
+            
+            NodeList weekList = doc.getElementsByTagName("week");
+                       
+            for (int temp = 0; temp < weekList.getLength(); temp++) {
+                Node week = weekList.item(temp);
+                NodeList gameList = week.getChildNodes();
+                for (int i = 0; i < gameList.getLength(); i++) {
+                    Node game = gameList.item(i);
+                    NodeList tList = game.getChildNodes();
+                    Node t1 = tList.item(0);
+                    TeamInfo h = null;
+                    for (int j = 0; j < teams.length; j++) {
+                        if(teams[j].name.equals(t1.getChildNodes().item(0).getTextContent())) {
+                            h = teams[j];
+                            break;
+                        }    
+                    }
+                    int hgoal = Integer.parseInt(t1.getChildNodes().item(1).getTextContent());
+                    Node t2 = tList.item(1);
+                    TeamInfo a = null;
+                    for (int j = 0; j < teams.length; j++) {
+                        if(teams[j].name.equals(t2.getChildNodes().item(0).getTextContent())) {
+                            a = teams[j];
+                            break;
+                        }    
+                    }
+                    int agoal = Integer.parseInt(t1.getChildNodes().item(1).getTextContent());
+                    if(a!=null && h!=null) {
+                        if(hgoal==agoal) {
+                            h.pts++;
+                            h.gs += hgoal;
+                            h.ga += agoal;
+                            h.draw++;
+                            a.pts += 1;
+                            a.draw += 1;
+                            a.gs += agoal;
+                            a.ga += hgoal;
+                        } else if(hgoal>agoal) {
+                            h.pts += 3;
+                            h.gs += hgoal;
+                            h.ga += agoal;
+                            h.won += 1;
+                            a.lose++;
+                            a.gs += agoal;
+                            a.ga += hgoal;
+                        } else if(agoal>hgoal) {
+                            a.pts += 3;
+                            h.gs += hgoal;
+                            h.ga += agoal;
+                            a.won += 1;
+                            h.lose++;
+                            a.gs += agoal;
+                            a.ga += hgoal;
+                        } 
+                        h.game++;
+                        a.game++;
+                    }
+                    
+                }
+            }
+        } catch (SAXException ex) {
+            Logger.getLogger(TableFrame.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(TableFrame.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ParserConfigurationException ex) {
+            Logger.getLogger(TableFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        //model = (DefaultTableModel) jTable1.getModel();
+        for(int i=0; i<teams.length; i++) {
+            model.removeRow(0);
+        }
+        for(int i=0; i<teams.length; i++) {
+            Vector row = new Vector();
+            TeamInfo t = teams[i];
+            row.add(t.name);
+            row.add(t.game);
+            row.add(t.won);
+            row.add(t.lose);
+            row.add(t.draw);
+            row.add(t.gs);
+            row.add(t.ga);
+            row.add(t.gdiff);
+            row.add(t.pts);
+            model.addRow(row);
+        }
+        jTable1.setModel(model);
+    }//GEN-LAST:event_btnUpdateTableMouseClicked
 
     /**
      * @param args the command line arguments
@@ -612,7 +700,7 @@ public class TableFrame extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnSubmit;
-    private javax.swing.JButton jButton1;
+    private javax.swing.JButton btnUpdateTable;
     private javax.swing.JButton jButton2;
     private javax.swing.JComboBox<String> jComboBox1;
     private javax.swing.JComboBox<String> jComboBox10;
@@ -696,6 +784,54 @@ public class TableFrame extends javax.swing.JFrame {
     }
 
     private void writeXml() {
-        
+        int index = 0;
+        try {
+            String filepath = G.fullPath;
+            DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+            Document doc = docBuilder.parse(filepath);
+
+            // Get the root element
+            Node company = doc.getFirstChild();
+
+            // Get the staff element , it may not working if tag has spaces, or
+            // whatever weird characters in front...it's better to use
+            // getElementsByTagName() to get it directly.
+            // Node staff = company.getFirstChild();
+            // Get the staff element by tag name directly
+            // XXX
+            Node week = doc.getElementsByTagName("week").item(G.nWeek);
+            // loop the staff child node
+            NodeList list = week.getChildNodes();
+            for (int i = 0; i < list.getLength(); i++) {
+                Node node = list.item(i);
+                NodeList games = node.getChildNodes();
+                for (int j = 0; j < games.getLength(); j++) {
+                    Node t = games.item(j);
+                    NodeList tList = t.getChildNodes();
+                    tList.item(0).setTextContent((String) combos.get(index).getSelectedItem());
+                    tList.item(1).setTextContent(gs[index] + "");
+                    index++;
+                }
+            }
+
+            // write the content into xml file
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            DOMSource source = new DOMSource(doc);
+            StreamResult result = new StreamResult(new File(filepath));
+            transformer.transform(source, result);
+
+            System.out.println("Done");
+            G.nWeek++;
+            if(G.nWeek > (G.teamsName.size()*2-3))
+                btnSubmit.setVisible(false);
+            else
+                jTabbedPane1.setTitleAt(1, "هفته " + (G.nWeek+1));
+
+        } catch (ParserConfigurationException | TransformerException | IOException | SAXException pce) {
+            pce.printStackTrace();
+        }
     }
+    
 }

@@ -341,6 +341,9 @@ public class CreateFrame extends javax.swing.JFrame {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            
+            TableFrame tf = new TableFrame();
+            tf.setVisible(true);
 
         }
     }//GEN-LAST:event_jButton3MouseClicked

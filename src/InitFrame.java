@@ -100,6 +100,7 @@ public class InitFrame extends javax.swing.JFrame {
         if (result == JFileChooser.APPROVE_OPTION) {
             File selectedFile = fileChooser.getSelectedFile();
             System.out.println("Selected file: " + selectedFile.getAbsolutePath());
+            G.fullPath = selectedFile.getAbsolutePath();
         }
         TableFrame tf = new TableFrame();
         tf.setVisible(true);
